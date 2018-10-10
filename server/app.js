@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 const path = require('path');
 
 
-const router = require('./routes/posts');
+const postRouter = require('./routes/posts');
+const userRouter = require('./routes/user');
 
 const app = express();
 mongoose.connect('mongodb+srv://rumit:bwLfJDjHsQQ5lggi@cluster0-y1sqz.mongodb.net/node-angular?retryWrites=true')
@@ -23,13 +24,14 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
    "Access-Control-Allow-Headers",
-   "Origin, X-Requested-With, Content-Type, Accept"
+   "Origin, X-Requested-With, Content-Type, Accept, x-auth"
    );
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
   next();
 });
 
 
-app.use("/api/posts" ,router);
+app.use("/api/posts" , postRouter);
+app.use("/api/user", userRouter);
 
 module.exports = app;

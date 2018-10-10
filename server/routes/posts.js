@@ -4,6 +4,7 @@ const _ = require('lodash');
 const multer = require('multer');
 
 const router = express.Router();
+const { authenticate } = require('./../middleware/authenticate');
 
 const MIME_TYPE_MAP = {
   'image/png': 'png',
@@ -27,7 +28,7 @@ const storage = multer.diskStorage({
   }
 });
 
-router.post('', multer({storage: storage}).single("image"), (req, res) => {
+router.post('', authenticate, multer({storage: storage}).single("image"), (req, res) => {
   const url = req.protocol + "://" + req.get("host");
 
   const post = new Post({
@@ -79,7 +80,7 @@ router.get('',async (req, res, next) => {
 
 });
 
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', authenticate, (req, res, next) => {
   var id = req.params.id;
 
   Post.findByIdAndDelete(id).then((doc) => {
@@ -91,7 +92,7 @@ router.delete('/:id', (req, res, next) => {
   });
 });
 
-router.patch('/:id', multer({storage: storage}).single("image"), (req, res) => {
+router.patch('/:id', authenticate, multer({storage: storage}).single("image"), (req, res) => {
   var id =  req.params.id;
   var body = _.pick(req.body, ['title', 'content']);
 

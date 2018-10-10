@@ -12,3 +12,7 @@ ul {
 .separator {
   flex: 1 1 auto;
 }
+
+ul  {
+  display: flex;
+}
