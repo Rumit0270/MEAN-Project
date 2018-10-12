@@ -13,6 +13,7 @@ export class LoginComponent {
   constructor(public userService: UserService) {}
 
   onSubmit(signupForm: NgForm) {
+    this.isLoading = true;
     const user: AuthModel =  {
       email: signupForm.value.email,
       password: signupForm.value.password

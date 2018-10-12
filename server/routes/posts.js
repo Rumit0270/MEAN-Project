@@ -12,6 +12,8 @@ const MIME_TYPE_MAP = {
   'image/jpg': 'jpg'
 };
 
+
+// save the photo to disk
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
     const isValid = MIME_TYPE_MAP[file.mimetype];
@@ -28,13 +30,15 @@ const storage = multer.diskStorage({
   }
 });
 
+// save the post
 router.post('', authenticate, multer({storage: storage}).single("image"), (req, res) => {
   const url = req.protocol + "://" + req.get("host");
 
   const post = new Post({
     title: req.body.title,
     content: req.body.content,
-    imagePath: url + "/images/" + req.file.filename
+    imagePath: url + "/images/" + req.file.filename,
+    creator: req.user.id
   });
 
   post.save().then((doc) => {
@@ -44,7 +48,8 @@ router.post('', authenticate, multer({storage: storage}).single("image"), (req, 
         id: doc._id,
         title: doc.title,
         content: doc.content,
-        imagePath: doc.imagePath
+        imagePath: doc.imagePath,
+        creator: doc.creator
       }
     });
   }, (err) => {
@@ -52,6 +57,7 @@ router.post('', authenticate, multer({storage: storage}).single("image"), (req, 
   });
 });
 
+// return all posts
 router.get('',async (req, res, next) => {
 
   const pageSize = +req.query.pageSize;
@@ -80,18 +86,31 @@ router.get('',async (req, res, next) => {
 
 });
 
+
+// delete a post
 router.delete('/:id', authenticate, (req, res, next) => {
   var id = req.params.id;
 
-  Post.findByIdAndDelete(id).then((doc) => {
-    res.status(200).json({
-      message: 'Successfully deleted'
-    });
+  Post.findOneAndDelete({
+    _id: id,
+    creator: req.user.id
+  }).then((doc) => {
+    if (doc) {
+      res.status(200).json({
+        message: 'Successfully deleted'
+      });
+    } else {
+      res.status(401).json({
+        message: 'Not Authorized'
+      });
+    }
   }, (err) => {
-    console.log('could not delete the doc'+ err);
+    console.log('could not delete the doc' + err);
   });
 });
 
+
+// update the post
 router.patch('/:id', authenticate, multer({storage: storage}).single("image"), (req, res) => {
   var id =  req.params.id;
   var body = _.pick(req.body, ['title', 'content']);
@@ -102,17 +121,27 @@ router.patch('/:id', authenticate, multer({storage: storage}).single("image"), (
     imagePath = url + "/images/" + req.file.filename
   }
 
-  Post.findByIdAndUpdate(id, {
+  Post.findOneAndUpdate({
+    _id: id,
+    creator: req.user.id
+  }, {
     $set: {
       content: body.content,
       title: body.title,
       imagePath
     }
   }, {new: true}).then((doc) => {
-    res.status(200).send({
-      message: 'Successfully updated',
-      doc: doc
+    if(doc) {
+      res.status(200).send({
+        message: 'Successfully updated',
+        doc: doc
+      });
+    } else {
+      res.status(401).send({
+        message: 'Not authorized'
     });
+    }
+
   });;
 });
 

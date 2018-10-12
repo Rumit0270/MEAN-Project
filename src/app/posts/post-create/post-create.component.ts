@@ -76,7 +76,8 @@ export class PostCreateComponent implements OnInit{
         id: null,
         title: this.form.value.title,
         content: this.form.value.content,
-        imagePath: null
+        imagePath: null,
+        creator: null
       };
 
       if (this.mode === 'edit') {
